@@ -71,12 +71,9 @@ unshare -m bash << EOF
     while read line; do
         eval "\$line"
         [[ \$TARGET == "/" ]] && continue
-        [[ \$FSTYPE == "nsfs" ]] && { echo "Ignoring \$TARGET of type nsfs"; continue; }
-        [[ \$FSTYPE == "vfat" ]] && { echo "Ignoring \$TARGET of type vfat"; continue; }
-        [[ \$FSTYPE == "overlay" ]] && { echo "Ignoring \$TARGET of type overlay"; continue; }
         [[ \$TARGET == ${SCRATCH_ROOT}* ]] && { echo "Skipping \$TARGET inside scratch fs root"; continue; }
         if [[ \$TARGET =~ ^/sys ]] || [[ \$TARGET =~ ^/proc ]] || [[ \$TARGET =~ ^/dev ]] || [[ \$TARGET =~ ^/run ]]; then
-            echo "Not overlaying \$TARGET, will bind mount"
+            echo "Creating bind mount for: \$TARGET"
             continue
         fi
         # Flatten overlay space.
@@ -85,7 +82,7 @@ unshare -m bash << EOF
         mkdir -p top-\${id} work-\${id}
         echo "Adding overlay for \${TARGET}"
         mount -t overlay overlay -o lowerdir=\${TARGET},upperdir=top-\${id},workdir=work-\${id} merge\${TARGET}
-    done < <(findmnt -P)
+    done < <(findmnt -P -i -t nsfs,vfat,overlay)
     
     echo "Bind-mounting /sys"
     mount --rbind /sys merge/sys
