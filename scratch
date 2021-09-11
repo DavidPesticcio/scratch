@@ -14,14 +14,21 @@ check_requirement() {
     type -P "$command" >/dev/null || die "This script requires the command '$command'"
 }
 
-check_requirement unshare
-check_requirement sha256sum
-check_requirement flock
-check_requirement id
-check_requirement findmnt
-check_requirement mount
-check_requirement bash
-check_requirement awk
+REQUIREMENTS="
+awk
+bash
+findmnt
+flock
+id
+mount
+sha256sum
+unshare
+"
+
+for requirement in ${REQUIREMENTS}
+do
+  check_requirement "${requirement}"
+done
 
 
 [[ $# == 1 ]] || die_usage
